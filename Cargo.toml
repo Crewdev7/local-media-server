@@ -13,7 +13,7 @@ actix-identity = "0.5"
 actix-multipart = "0.6"
 actix-multipart-derive = "0.6"
 actix-protobuf = "0.9"
-actix-session = "0.7"
+actix-session = { version = "0.7", features = ["cookie-session"] }
 actix-utils = "3"
 actix-web = "4.3"
 actix-web-lab = "0.19"
@@ -32,4 +32,5 @@ jsonwebtoken = "8.3.0"
 sqlx = { version = "0.6", features = ["sqlite", "runtime-actix-native-tls"] }
 dotenv = '*'
 bcrypt = "*"
-thiserror ="*"
+thiserror = "*"
+chrono = "*"

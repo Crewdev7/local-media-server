@@ -1,3 +1,4 @@
-pub mod auth;
-pub mod db;
-pub mod user;
+pub mod api;
+mod models;
+mod services;
+
