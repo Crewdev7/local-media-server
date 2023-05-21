@@ -8,7 +8,9 @@ use actix_web::{
     web::{self, scope},
     App, HttpServer,
 };
-use netflix_clone::api::{auth_routes::init_auth_route, user_routes::init_user_route};
+use netflix_clone::api::{
+    auth_routes::init_auth_route, movie_routes::init_movie_route, user_routes::init_user_route,
+};
 use sqlx::SqlitePool;
 
 //
@@ -45,7 +47,8 @@ async fn main() -> io::Result<()> {
             .service(
                 scope("/api")
                     .configure(init_user_route)
-                    .configure(init_auth_route),
+                    .configure(init_auth_route)
+                    .configure(init_movie_route),
             )
     })
     .workers(2)
