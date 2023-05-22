@@ -29,7 +29,7 @@ impl Movie {
 
         Ok(insert_result.last_insert_rowid() as i32)
     }
-    
+
     pub async fn find_by_id(pool: &SqlitePool, id: &str) -> SError<Option<Movie>> {
         let user = query_as!(Movie, r#"SELECT * FROM movies  WHERE  id= ?"#, id)
             .fetch_optional(pool)
@@ -41,6 +41,18 @@ impl Movie {
         Ok(query_as!(Movie, "SELECT *  FROM  movies ")
             .fetch_all(pool)
             .await?)
+    }
+
+    pub async fn get_all_liked_movie(pool: &SqlitePool, user_id: &str) -> SError<Vec<Movie>> {
+        Ok(query_as!(
+            Movie,
+            "SELECT movies.* FROM movies
+        INNER JOIN likes ON movies.id = likes.movie_id
+        WHERE likes.user_id = ?",
+            user_id
+        )
+        .fetch_all(pool)
+        .await?)
     }
 
     pub async fn delete_by_id(pool: &SqlitePool, id: &str) -> SError<u64> {
@@ -85,6 +97,32 @@ impl Movie {
         )
         .execute(pool)
         .await?;
+        Ok(())
+    }
+
+    pub async fn like_movie(
+        pool: &SqlitePool,
+        user_id: &str,
+        movie_id: &str,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query("INSERT INTO likes (user_id, movie_id) VALUES (?, ?) ON CONFLICT DO NOTHING")
+            .bind(user_id)
+            .bind(movie_id)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn unlike_movie(
+        pool: &SqlitePool,
+        user_id: &str,
+        movie_id: &str,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM  likes WHERE user_id = ?  AND movie_id= ?")
+            .bind(user_id)
+            .bind(movie_id)
+            .execute(pool)
+            .await?;
         Ok(())
     }
 }

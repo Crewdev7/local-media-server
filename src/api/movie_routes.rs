@@ -1,3 +1,4 @@
+use actix_identity::Identity;
 use actix_web::{
     delete, get, post, put,
     web::{scope, Data, Json, Path, ServiceConfig},
@@ -15,10 +16,32 @@ pub fn init_movie_route(cfg: &mut ServiceConfig) {
         scope("/movies")
             .service(get_movies)
             .service(create_movie)
-            .service(get_movie_by_id)
-            .service(del_movie_by_id)
-            .service(update_movie_by_id),
+            .service(
+                scope("/by_id")
+                    .service(get_movie_by_id)
+                    .service(del_movie_by_id)
+                    .service(like_movie)
+                    .service(unlike_movie)
+                    .service(update_movie_by_id),
+            )
+            .service(scope("likes").service(get_all_liked_movie)),
     );
+}
+
+#[get("")]
+async fn get_all_liked_movie(
+    identity: Identity,
+    pool: Data<SqlitePool>,
+) -> AResult<impl Responder> {
+    let user_id = match identity.id().ok() {
+        Some(id) => id,
+        None => return Ok(HttpResponse::BadRequest().body("You must be logged in")),
+    };
+
+    let result = MovieService::get_all_liked_movie(pool.as_ref(), &user_id).await?;
+    let movies = json!(result);
+
+    Ok(HttpResponse::Ok().json(movies))
 }
 
 #[get("")]
@@ -34,6 +57,36 @@ async fn get_movie_by_id(pool: Data<SqlitePool>, path: Path<(String,)>) -> AResu
     let movie = MovieService::get_movie_by_id(pool.as_ref(), &path.into_inner().0).await?;
     let json_movie = json!(movie);
     Ok(HttpResponse::Ok().json(json_movie))
+}
+
+#[get("/{movie_id}/like")]
+async fn like_movie(
+    pool: Data<SqlitePool>,
+    identity: Identity,
+    path: Path<(String,)>,
+) -> AResult<impl Responder> {
+    let user_id = match identity.id().ok() {
+        Some(id) => id,
+        None => return Ok(HttpResponse::BadRequest().body("You must be logged in")),
+    };
+
+    MovieService::like_movie(pool.as_ref(), &user_id, &path.into_inner().0).await?;
+    Ok(HttpResponse::Ok().body("success"))
+}
+
+#[get("/{movie_id}/unlike")]
+async fn unlike_movie(
+    pool: Data<SqlitePool>,
+    identity: Identity,
+    path: Path<(String,)>,
+) -> AResult<impl Responder> {
+    let user_id = match identity.id().ok() {
+        Some(id) => id,
+        None => return Ok(HttpResponse::BadRequest().body("You must be logged in")),
+    };
+
+    MovieService::unlike_movie(pool.as_ref(), &user_id, &path.into_inner().0).await?;
+    Ok(HttpResponse::Ok().body("success"))
 }
 
 #[post("")]

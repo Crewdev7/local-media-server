@@ -1,3 +1,4 @@
+use actix_identity::Identity;
 use actix_web::HttpResponse;
 use actix_web::ResponseError;
 
@@ -34,6 +35,13 @@ impl MovieService {
     pub async fn get_all_movies(pool: &SqlitePool) -> Result<Vec<Movie>, MovieSError> {
         Ok(Movie::get_all(pool).await?)
     }
+
+
+    pub async fn get_all_liked_movie(pool: &SqlitePool,user_id: &str) -> Result<Vec<Movie>, MovieSError> {
+
+        Ok(Movie::get_all_liked_movie(pool,user_id).await?)
+    }
+
     pub async fn create_movie(pool: &SqlitePool, n_movie: &NMovie) -> Result<i32, MovieSError> {
         let movie_id =
             Movie::create(pool, &n_movie.title, &n_movie.genre, &n_movie.release_year).await?;
@@ -81,6 +89,26 @@ impl MovieService {
         Ok(Movie::update_by_id(pool, id, &title, &genre, &release_year)
             .await
             .map_err(|_| MovieSError::Unkown("unable to update".into()))?)
+    }
+
+    pub async fn like_movie(
+        pool: &SqlitePool,
+        user_id: &str,
+        movie_id: &str,
+    ) -> Result<(), MovieSError> {
+        Ok(Movie::like_movie(pool, user_id, movie_id)
+            .await
+            .map_err(|_| MovieSError::Unkown("Unable to like".into()))?)
+    }
+
+    pub async fn unlike_movie(
+        pool: &SqlitePool,
+        user_id: &str,
+        movie_id: &str,
+    ) -> Result<(), MovieSError> {
+        Ok(Movie::unlike_movie(pool, user_id, movie_id)
+            .await
+            .map_err(|_| MovieSError::Unkown("Unable to like".into()))?)
     }
 }
 
