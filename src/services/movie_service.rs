@@ -1,9 +1,14 @@
-use actix_identity::Identity;
+use std::fs::File;
+use std::io;
+use std::io::Write;
+
+
 use actix_web::HttpResponse;
 use actix_web::ResponseError;
 
 use sqlx::SqlitePool;
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::api::movie_routes::NMovie;
 use crate::models::movie_model::Movie;
@@ -27,6 +32,9 @@ pub enum MovieSError {
 
     #[error("{0}")]
     Unkown(String),
+
+    #[error("{0}")]
+    FileError(#[from] io::Error),
 }
 
 pub struct MovieService;
@@ -36,10 +44,11 @@ impl MovieService {
         Ok(Movie::get_all(pool).await?)
     }
 
-
-    pub async fn get_all_liked_movie(pool: &SqlitePool,user_id: &str) -> Result<Vec<Movie>, MovieSError> {
-
-        Ok(Movie::get_all_liked_movie(pool,user_id).await?)
+    pub async fn get_all_liked_movie(
+        pool: &SqlitePool,
+        user_id: &str,
+    ) -> Result<Vec<Movie>, MovieSError> {
+        Ok(Movie::get_all_liked_movie(pool, user_id).await?)
     }
 
     pub async fn create_movie(pool: &SqlitePool, n_movie: &NMovie) -> Result<i32, MovieSError> {
@@ -110,8 +119,20 @@ impl MovieService {
             .await
             .map_err(|_| MovieSError::Unkown("Unable to like".into()))?)
     }
-}
 
+    pub fn upload_file() -> Result<File, MovieSError> {
+        let filename = Uuid::new_v4().to_string();
+
+        // Create a file path to save the uploaded file
+        let filepath = format!("uploads/{}", &filename);
+
+        // Create a mutable file buffer to write the file content
+        let file_buffer = std::fs::File::create(&filepath)?;
+        // file_buffer.write_all(&data)?;
+
+        Ok(file_buffer)
+    }
+}
 impl ResponseError for MovieSError {
     fn error_response(&self) -> actix_web::HttpResponse<actix_http::body::BoxBody> {
         log::error!("main error obj. e::: {self:?}");

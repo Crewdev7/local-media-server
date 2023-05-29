@@ -33,4 +33,7 @@ sqlx = { version = "0.6", features = ["sqlite", "runtime-actix-native-tls"] }
 dotenv = '*'
 bcrypt = "*"
 thiserror = "*"
+uuid = { version = "*", features = ["v4"] }
+futures = "*"
 chrono = "*"
+async-trait = "0.1.68"

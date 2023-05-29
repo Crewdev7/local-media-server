@@ -15,7 +15,7 @@ use crate::services::user_service::UserService;
 type AResult<T> = actix_web::Result<T>;
 
 pub fn init_auth_route(cfg: &mut ServiceConfig) {
-    cfg.service(web::scope("/auth").service(signup).service(login));
+    cfg.service(web::resource("/auth").service(signup).service(login));
 }
 
 #[post("/signup")]

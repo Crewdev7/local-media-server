@@ -1,7 +1,7 @@
 use actix_identity::Identity;
 use actix_web::{
     delete, get, post, put,
-    web::{scope, Data, Json, Path, ServiceConfig},
+    web::{resource, Data, Json, Path, ServiceConfig},
     HttpRequest, HttpResponse, Responder,
 };
 use serde::Deserialize;
@@ -13,18 +13,18 @@ use crate::services::movie_service::MovieService;
 type AResult<T> = actix_web::Result<T>;
 pub fn init_movie_route(cfg: &mut ServiceConfig) {
     cfg.service(
-        scope("/movies")
+        resource("/movies")
             .service(get_movies)
             .service(create_movie)
             .service(
-                scope("/by_id")
+                resource("/by_id")
                     .service(get_movie_by_id)
                     .service(del_movie_by_id)
                     .service(like_movie)
                     .service(unlike_movie)
                     .service(update_movie_by_id),
             )
-            .service(scope("likes").service(get_all_liked_movie)),
+            .service(resource("likes").service(get_all_liked_movie)),
     );
 }
 

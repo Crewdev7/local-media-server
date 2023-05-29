@@ -3,7 +3,7 @@ use actix_web::{
     delete,
     error::{ErrorBadRequest, ErrorForbidden},
     get, put,
-    web::{scope, Data, Json, Path, ServiceConfig},
+    web::{resource, Data, Json, Path, ServiceConfig},
     HttpRequest, HttpResponse, Responder,
 };
 use log::info;
@@ -15,7 +15,7 @@ use crate::services::user_service::{decode_jwt_token, Claims, UserService};
 type AResult<T> = actix_web::Result<T>;
 pub fn init_user_route(cfg: &mut ServiceConfig) {
     cfg.service(
-        scope("/user")
+        resource("/user")
             .service(get_user)
             .service(get_user_by_id)
             .service(del_user_by_id)

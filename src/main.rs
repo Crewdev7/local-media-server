@@ -1,4 +1,4 @@
-use std::{env, io};
+use std::{env, io, fs};
 
 use actix_identity::IdentityMiddleware;
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
@@ -9,13 +9,13 @@ use actix_web::{
     App, HttpServer,
 };
 use netflix_clone::api::{
-    auth_routes::init_auth_route, movie_routes::init_movie_route, user_routes::init_user_route,
+    admin_routes::init_admin_route, auth_routes::init_auth_route, movie_routes::init_movie_route,
+    user_routes::init_user_route,
 };
 use sqlx::SqlitePool;
 
 //
 // Moduels
-
 mod db;
 #[actix_web::main]
 async fn main() -> io::Result<()> {
@@ -38,6 +38,8 @@ async fn main() -> io::Result<()> {
             .session_lifecycle(PersistentSession::default().session_ttl(Duration::days(1)))
             .build();
 
+        fs::create_dir_all("./uploads").unwrap();
+
         App::new()
             .wrap(middleware::NormalizePath::trim())
             .app_data(web::Data::new(pool.clone()))
@@ -48,7 +50,8 @@ async fn main() -> io::Result<()> {
                 scope("/api")
                     .configure(init_user_route)
                     .configure(init_auth_route)
-                    .configure(init_movie_route),
+                    .configure(init_movie_route)
+                    .configure(init_admin_route),
             )
     })
     .workers(2)

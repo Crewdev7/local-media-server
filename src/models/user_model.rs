@@ -80,7 +80,7 @@ impl User {
         Ok(())
     }
     pub async fn mark_id_for_deletion(pool: &SqlitePool, id: &str) -> SError<()> {
-        let res = sqlx::query!(
+        let _res = sqlx::query!(
             "INSERT INTO del_req (user_id) VALUES (?) ON CONFLICT  DO NOTHING",
             id
         )
